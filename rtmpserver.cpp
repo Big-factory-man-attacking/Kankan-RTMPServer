@@ -138,9 +138,7 @@ void RtmpServer::start()
         int nFlag = 1;
         setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, (char*)&nFlag, sizeof(nFlag));  //关闭Nagle算法
         auto conn = m_manager->createConnection(fd);
-        if (true) {
-            m_threadPool->AddTask(std::bind(&RtmpServer::analysePacket, this, conn));
-        }
+        m_threadPool->AddTask(std::bind(&RtmpServer::analysePacket, this, conn));
     }
 }
 void RtmpServer::play(std::shared_ptr<ClientConnection> conn)
@@ -282,6 +280,8 @@ void RtmpServer::analysePacket(std::shared_ptr<ClientConnection> conn)
         }
         if (conn->streamType() == ClientConnection::Play) {
             fclose(pFile);
+            std::string cmdRm = "rm -f " + path;
+            system(cmdRm.c_str());
             break;
         }
    }
@@ -297,7 +297,7 @@ void RtmpServer::analysePacket(std::shared_ptr<ClientConnection> conn)
         std::string filePath = fileDir.substr(0, n) + "/media/" + conn->videoPath() + ".flv";
         std::string cmdMv = "mv " + path + " " + filePath;
         system(cmdMv.c_str());  //将临时文件移动到服务器目录下
-        std::string cmdRm = "rm -f " + path;
+        std::string cmdRm = "rm -f " + path;    //删除临时文件
         system(cmdRm.c_str());
    }
 
